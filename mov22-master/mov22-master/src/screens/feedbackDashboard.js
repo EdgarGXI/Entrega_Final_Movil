@@ -74,10 +74,14 @@ export default function FeedbackDashboard() {
               <Text className="text-base font-semibold">Total ratings</Text>
               <Text className="text-base font-semibold text-gray-400">
                 ·{" "}
-                {(
-                  eventData.ratings.reduce((s, n) => s + n, 0) /
-                  eventData.ratings.length
-                ).toFixed(1)}{" "}
+                {eventData.ratings.length > 0 ? (
+                  (
+                    eventData.ratings.reduce((s, n) => s + n, 0) /
+                    eventData.ratings.length
+                  ).toFixed(1)
+                ) : (
+                  0
+                )}{" "}
                 average from {formatCompactNumber(eventData.ratings.length)}{" "}
                 ratings
               </Text>

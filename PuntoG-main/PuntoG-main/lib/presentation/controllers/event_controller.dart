@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:f_project_1/data/usescases_impl/check_event_version_usecase_impl.dart';
 import 'package:f_project_1/domain/usecases/add_comment.dart';
 import 'package:f_project_1/presentation/controllers/connectivity_controller.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:loggy/loggy.dart';
@@ -27,6 +30,9 @@ class EventController extends GetxController {
   final Rxn<EventModel> selectedEvent = Rxn<EventModel>();
   final RxString selectedFilter = ''.obs;
 
+  Timer? _timer;
+  bool _isSnackbarVisible = false;
+
   EventController({
     required IEventRepository repository,
     required JoinEvent joinEventUseCase,
@@ -46,35 +52,94 @@ class EventController extends GetxController {
     super.onInit();
     resetFilter();
     loadEventsIntelligently();
+    _startEventRefreshTimer();
+  }
+
+  void _startEventRefreshTimer() {
+    logInfo("Inicia temporizador");
+    _timer?.cancel(); // por si ya estaba corriendo
+    _timer = Timer.periodic(const Duration(seconds: 20), (timer) async {
+      logInfo("Temporizador termina");
+      if (!_isSnackbarVisible) {
+        final hasNewVersion = await checkEventsVersion();
+        if (hasNewVersion) {
+          showRefreshSnackbar();
+        }
+      }
+    });
+  }
+
+  @override
+  void onClose() {
+    _timer?.cancel(); // Cancela el temporizador al cerrar el controlador
+    super.onClose();
+  }
+
+  Future<bool> checkEventsVersion() async {
+    final connected = Get.find<ConnectivityController>().connection;
+
+    try {
+      final hasNewVersion =
+          connected ? await _checkVersionUseCase.hasNewVersion() : false;
+      return hasNewVersion;
+    } catch (e) {
+      logError('Error al cargar versión de eventos: $e');
+      return false;
+    }
+  }
+
+  void showRefreshSnackbar() async {
+    _isSnackbarVisible = true;
+    _timer?.cancel();
+    
+    Get.snackbar(
+      'Nuevos eventos disponibles',
+      'Presiona para actualizar',
+      snackPosition: SnackPosition.BOTTOM,
+      isDismissible: true,
+      mainButton: TextButton(
+        onPressed: () {
+          Get.back(); // Cierra el snackbar
+          _isSnackbarVisible = false;
+          loadEventsIntelligently();
+          _startEventRefreshTimer();
+        },
+        child: Text(
+          'Actualizar',
+          style: TextStyle(color: Get.theme.colorScheme.primary),
+        ),
+      ),
+      duration: const Duration(seconds: 20),
+    );
+
+    // Wait for snackbar duration to expire before restarting event timer
+    await Future.delayed(const Duration(seconds: 20));
+    _isSnackbarVisible = false;
+    _startEventRefreshTimer();
   }
 
   Future<void> loadEventsIntelligently() async {
     final connected = Get.find<ConnectivityController>().connection;
 
     try {
-      final hasNewVersion =
-          connected ? await _checkVersionUseCase.hasNewVersion() : false;
+      final hasNewVersion = await checkEventsVersion();
+      
+      logInfo('Actualizando eventos...');
+      final fetchedEvents = await _repository.getAllEvents();
+      filteredEvents.value = fetchedEvents.cast<EventModel>();
+      updateJoinedEvents();
 
-      if (hasNewVersion) {
-        logInfo('Nueva versión detectada, actualizando eventos...');
-        final fetchedEvents = await _repository.getAllEvents();
-        filteredEvents.value = fetchedEvents.cast<EventModel>();
-        updateJoinedEvents();
-
+      if (hasNewVersion) { 
+        logInfo("Nueva versión detectada");
         await _repository.saveEvents(filteredEvents);
         final remoteVersion =
             await (_checkVersionUseCase as CheckEventVersionUseCaseImpl)
                 .remote
                 .fetchRemoteVersion();
         await (_checkVersionUseCase).local.setLocalVersion(remoteVersion);
+
+        filterEvents(selectedFilter.value);
       }
-
-      final events = await _repository.getAllEvents();
-
-      // final rawJson = jsonEncode(events);
-      // logInfo('📥 Todos los eventos cargados: $rawJson');
-      filteredEvents.value = events.cast<EventModel>();
-      updateJoinedEvents();
     } catch (e) {
       logError('Error al cargar eventos: $e');
     }
