@@ -153,7 +153,7 @@ app.post("/subscribe/:id", async (req, res) => {
     }
     return res.status(400).json({ error: "No spots available or event not found." });
   } catch (error) {
-    console.error("🔥 Error en /subscribe/:id →", error);
+    console.error("Error en /subscribe/:id →", error);
     return res.status(500).json({ error: error.message });
   }
 });
@@ -179,7 +179,7 @@ app.post("/unsubscribe/:id", async (req, res) => {
       .status(200)
       .json({ message: "Unsubscribed successfully!", event });
   } catch (error) {
-    console.error("🔥 Error en /unsubscribe/:id →", error);
+    console.error("Error en /unsubscribe/:id →", error);
     return res.status(500).json({ error: error.message });
   }
 });
@@ -221,7 +221,7 @@ app.post("/addrating/:id", async (req, res) => {
       .status(200)
       .json({ message: "Rating enviado correctamente", ratings: event.ratings });
   } catch (error) {
-    console.error("🔥 Error en /addrating/:id →", error);
+    console.error("Error en /addrating/:id →", error);
     return res.status(500).json({ error: error.message });
   }
 });
@@ -248,7 +248,7 @@ app.post("/comment/:id", async (req, res) => {
       .status(200)
       .json({ message: "Comentario agregado", comments: event.comments });
   } catch (error) {
-    console.error("🔥 Error en /comment/:id →", error);
+    console.error("Error en /comment/:id →", error);
     return res.status(500).json({ error: error.message });
   }
 });
@@ -351,13 +351,15 @@ app.put("/categories/:id", async (req, res) => {
 // delete category
 app.delete("/categories/:id", async (req, res) => {
   try {
-    const result = await Category.findByIdAndDelete(req.params.id);
-    if (!result) {
+    const category = await Category.findById(req.params.id);
+    if (!category) {
       return res.status(404).json({ error: "Category not found" });
     }
-
-    // TODO: await increment categories version?
-
+    const events = await Event.find({ type: category.type });
+    if (events.length > 0) {
+      return res.status(404).json({ error: "Cannot delete category with events. Move events to different categories before deleting." });
+    }
+    await Category.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Category deleted successfully" });
   } catch (error) {
     res
@@ -365,6 +367,7 @@ app.delete("/categories/:id", async (req, res) => {
       .json({ error: `Failed to delete category with id = ${req.params.id}` });
   }
 });
+
 
 app.listen(port, () => {
   console.log(`API listening on port ${port}`);

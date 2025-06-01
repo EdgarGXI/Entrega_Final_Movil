@@ -4,6 +4,7 @@ const categorySchema = new mongoose.Schema({
   label: {
     type: String,
     required: true,
+    unique: true,
     validate: {
       validator: (value) => value.length > 0,
       message: "Label cannot be an empty string.",
@@ -12,6 +13,7 @@ const categorySchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
+    unique: true,
     validate: {
       validator: (value) => value.length > 0,
       message: "Type cannot be an empty string.",

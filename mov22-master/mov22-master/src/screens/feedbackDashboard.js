@@ -6,6 +6,7 @@ import { enGB, registerTranslation } from "react-native-paper-dates";
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../context/AppProvider";
 import LoadingScreen from "./loadingScreen";
+import formatCompactNumber from "../utils/formatCompactNumber";
 registerTranslation("en", enGB);
 
 export default function FeedbackDashboard() {
@@ -18,7 +19,6 @@ export default function FeedbackDashboard() {
     const fetchEventData = async () => {
       const data = await getOneEvent(eventId);
       setEventData(data);
-      console.log ("Event Data:", eventData);
     };
     fetchEventData();
   }, [eventId]);
@@ -26,7 +26,7 @@ export default function FeedbackDashboard() {
   if (eventData?.ratings == undefined || loading) {
     return <LoadingScreen />;
   }
-  
+
   return (
     <ScrollView
       className="bg-white"
@@ -70,7 +70,18 @@ export default function FeedbackDashboard() {
               </Text>
             </View>
 
-            <Text className="text-base font-semibold">Total Ratings</Text>
+            <View className="flex-row gap-2 items-center">
+              <Text className="text-base font-semibold">Total ratings</Text>
+              <Text className="text-base font-semibold text-gray-400">
+                ·{" "}
+                {(
+                  eventData.ratings.reduce((s, n) => s + n, 0) /
+                  eventData.ratings.length
+                ).toFixed(1)}{" "}
+                average from {formatCompactNumber(eventData.ratings.length)}{" "}
+                ratings
+              </Text>
+            </View>
             {eventData.ratings && eventData.ratings.length > 0 ? (
               <View className="mt-3 mb-2 flex-col-reverse">
                 {Array.from(Array(5).keys()).map((index) => {
@@ -108,14 +119,9 @@ export default function FeedbackDashboard() {
                 No ratings yet
               </Text>
             )}
-             <Text className="text-base font-semibold">Comments</Text>
-            <View
-              style={{ maxHeight: 220 }} 
-              className="mt-3 mb-2"
-            >
-              <ScrollView
-                showsVerticalScrollIndicator={true}
-              >
+            <Text className="text-base font-semibold">Comments</Text>
+            <View style={{ maxHeight: 220 }} className="mt-3 mb-2">
+              <ScrollView showsVerticalScrollIndicator={true}>
                 {eventData.comments && eventData.comments.length > 0 ? (
                   eventData.comments.map((comment, index) => (
                     <View
@@ -132,7 +138,9 @@ export default function FeedbackDashboard() {
                       {/* Icono de usuario anónimo */}
                       <Text className="text-2xl mr-3">👤</Text>
                       {/* Comentario */}
-                      <Text className="text-sm text-gray-700 flex-1">{comment}</Text>
+                      <Text className="text-sm text-gray-700 flex-1">
+                        {comment}
+                      </Text>
                     </View>
                   ))
                 ) : (

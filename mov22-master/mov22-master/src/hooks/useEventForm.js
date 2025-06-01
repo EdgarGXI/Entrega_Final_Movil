@@ -112,7 +112,7 @@ const useEventForm = (eventId, navigation) => {
             fetchedData.participants - fetchedData.availableSpots
           );
           categoryDropdownProps.setValue(
-            categories.find((e) => e.label === fetchedData.type)?.value
+            categories.find((e) => e.type === fetchedData.type)?.value
           );
         } catch (error) {
           console.log("Error fetching event data:", error.message);

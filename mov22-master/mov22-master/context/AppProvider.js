@@ -130,7 +130,7 @@ export const AppProvider = ({ children }) => {
       await fetchCategories();
       return true;
     } catch (err) {
-      setError("Failed to create category.");
+      setError("Failed to create category. Check if it already exists.");
       return false;
     } finally {
       setLoading(false);
@@ -200,7 +200,7 @@ export const AppProvider = ({ children }) => {
       }
       return false;
     } catch (err) {
-      setError("Failed to delete category.");
+      setError("Failed to delete category. Check if it has events linked to it. You must unlink them before deleting the category.");
       return false;
     } finally {
       setLoading(false);

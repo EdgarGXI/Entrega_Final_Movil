@@ -6,16 +6,16 @@ export default function EventItem({ item, handleDelete, navigateEdit }) {
 
   return (
     <View className="rounded-3xl bg-white px-5 py-6 w-full flex-row justify-between items-center">
-      <View className="w-[90%]">
+      <View className="w-[87%]">
         <Text
           className="text-xl font-strong text-ellipsis overflow-hidden"
           numberOfLines={1}
         >
           {item.title}
         </Text>
-        <View className="flex-row gap-1 items-center">
+        <View className="flex-row gap-1 items-center fle flex-shrink flex- ">
           <MaterialIcons name="place" size={22} color="gray" />
-          <Text className="text-ellipsis overflow-hidden text-gray-600" numberOfLines={1}>
+          <Text className="text-ellipsis overflow-hidden text-gray-600 flex-1" numberOfLines={1}>
             {item.location}
           </Text>
         </View>
