@@ -1,5 +1,8 @@
+import 'package:f_project_1/data/datasources/local/category_local_data_source.dart';
 import 'package:f_project_1/data/datasources/remote/category_remote_data_source.dart';
+import 'package:f_project_1/data/datasources/remote/category_version_remote_data_source.dart';
 import 'package:f_project_1/data/repositories/category_repository_impl.dart';
+import 'package:f_project_1/data/usescases_impl/check_category_version_usecase_impl.dart';
 import 'package:f_project_1/domain/usecases/add_comment.dart';
 import 'package:f_project_1/domain/usecases/get_categories_usecase.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +16,7 @@ import 'package:f_project_1/core/network/network_info.dart';
 
 import 'package:f_project_1/data/datasources/local/event_local_data_source.dart';
 import 'package:f_project_1/data/datasources/remote/event_remote_data_source.dart';
-import 'package:f_project_1/data/datasources/remote/version_remote_data_source.dart';
+import 'package:f_project_1/data/datasources/remote/event_version_remote_data_source.dart';
 import 'package:f_project_1/data/repositories/event_repository_impl.dart';
 import 'package:f_project_1/data/usescases_impl/check_event_version_usecase_impl.dart'; // ruta corregida
 
@@ -36,10 +39,13 @@ void main() async {
   // Inicializar Hive
   final localDataSource = EventLocalDataSource();
   await localDataSource.init();
+  final categoryLocalDataSource = CategoryLocalDataSource();
+  await categoryLocalDataSource.init();
 
   // Fuentes remotas y network
   final remoteDataSource = EventRemoteDataSource();
-  final versionRemoteDataSource = VersionRemoteDataSource();
+  final eventVersionRemoteDataSource = EventVersionRemoteDataSource();
+  final categoryVersionRemoteDataSource = CategoryVersionRemoteDataSource();
   final networkInfo = NetworkInfo();
   final categoryRemoteDataSource = CategoryRemoteDataSource();
 
@@ -49,8 +55,11 @@ void main() async {
     remoteDataSource: remoteDataSource,
     networkInfo: networkInfo,
   );
-  final categoryRepository =
-      CategoryRepository(remoteDataSource: categoryRemoteDataSource);
+  final categoryRepository = CategoryRepository(
+    localDataSource: categoryLocalDataSource,
+    remoteDataSource: categoryRemoteDataSource,
+    networkInfo: networkInfo,
+  );
 
   // Casos de uso
 
@@ -58,26 +67,33 @@ void main() async {
   final joinEvent = JoinEvent(eventRepo);
   final unjoinEvent = UnjoinEvent(eventRepo);
   final filterEvents = FilterEvents();
-  final checkVersion = CheckEventVersionUseCaseImpl(
+  final checkVersionEvents = CheckEventVersionUseCaseImpl(
     local: localDataSource,
-    remote: versionRemoteDataSource,
+    remote: eventVersionRemoteDataSource,
+  );
+  final checkVersionCategory = CheckCategoryVersionUseCaseImpl(
+    local: categoryLocalDataSource,
+    remote: categoryVersionRemoteDataSource,
   );
   final getCategoriesUseCase =
       GetCategoriesUseCase(repository: categoryRepository);
 
   // Inyección de dependencias
-  Get.put(HomeController(getCategoriesUseCase: getCategoriesUseCase));
   Get.put(BottomNavController());
   Get.put(TopNavController());
   Get.put(NetworkInfo());
   Get.put(ConnectivityController());
+  Get.put(HomeController(
+      getCategoriesUseCase: getCategoriesUseCase,
+      checkVersionUseCase: checkVersionCategory,
+      repository: categoryRepository));
   Get.put(EventController(
     repository: eventRepo,
     joinEventUseCase: joinEvent,
     unjoinEventUseCase: unjoinEvent,
     filterEventsUseCase: filterEvents,
-    checkVersionUseCase: checkVersion,
-     addCommentUseCase:    addComment,
+    checkVersionUseCase: checkVersionEvents,
+    addCommentUseCase: addComment,
   ));
 
   runApp(const MyApp(initialRoute: AppRoutes.splash));

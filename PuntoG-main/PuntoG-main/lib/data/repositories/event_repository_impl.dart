@@ -134,13 +134,10 @@ Future<List<Event>> getAllEvents() async {
     }
   }
 
-
-
   @override
   Future<void> saveEvents(List<Event> events) async {
     await localDataSource.saveEvents(events.cast<EventModel>());
   }
-
 
   @override
 Future<void> addComment(String eventId, String comment) async {

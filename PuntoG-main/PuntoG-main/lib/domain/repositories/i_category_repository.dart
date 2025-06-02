@@ -1,5 +1,6 @@
-import 'package:f_project_1/data/models/category_model.dart';
+import 'package:f_project_1/domain/entities/category.dart';
 
 abstract class ICategoryRepository {
-  Future<List<CategoryModel>> getCategories();
+  Future<List<Category>> getCategories();
+  Future<void> saveCategories(List<Category> categories);
 }

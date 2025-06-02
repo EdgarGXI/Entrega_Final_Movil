@@ -13,7 +13,7 @@ import '../../domain/repositories/i_event_repository.dart';
 import '../../domain/usecases/join_event.dart';
 import '../../domain/usecases/unjoin_event.dart';
 import '../../domain/usecases/filter_events.dart';
-import '../../domain/usecases/i_check_event_version_usecase.dart';
+import '../../domain/usecases/i_check_version_usecase.dart';
 
 import '../../data/models/event_model.dart';
 
@@ -22,7 +22,7 @@ class EventController extends GetxController {
   final JoinEvent _joinEventUseCase;
   final UnjoinEvent _unjoinEventUseCase;
   final FilterEvents _filterEventsUseCase;
-  final ICheckEventVersionUseCase _checkVersionUseCase;
+  final ICheckVersionUseCase _checkVersionUseCase;
   final AddComment _addCommentUseCase;
 
   final RxList<EventModel> filteredEvents = <EventModel>[].obs;
@@ -38,7 +38,7 @@ class EventController extends GetxController {
     required JoinEvent joinEventUseCase,
     required UnjoinEvent unjoinEventUseCase,
     required FilterEvents filterEventsUseCase,
-    required ICheckEventVersionUseCase checkVersionUseCase,
+    required ICheckVersionUseCase checkVersionUseCase,
     required AddComment addCommentUseCase,
   })  : _repository = repository,
         _joinEventUseCase = joinEventUseCase,
@@ -61,9 +61,9 @@ class EventController extends GetxController {
     _timer = Timer.periodic(const Duration(seconds: 20), (timer) async {
       logInfo("Temporizador termina");
       if (!_isSnackbarVisible) {
-        final hasNewVersion = await checkEventsVersion();
+        final hasNewVersion = await _checkEventsVersion();
         if (hasNewVersion) {
-          showRefreshSnackbar();
+          _showRefreshSnackbar();
         }
       }
     });
@@ -75,7 +75,7 @@ class EventController extends GetxController {
     super.onClose();
   }
 
-  Future<bool> checkEventsVersion() async {
+  Future<bool> _checkEventsVersion() async {
     final connected = Get.find<ConnectivityController>().connection;
 
     try {
@@ -88,10 +88,10 @@ class EventController extends GetxController {
     }
   }
 
-  void showRefreshSnackbar() async {
+  void _showRefreshSnackbar() async {
     _isSnackbarVisible = true;
     _timer?.cancel();
-    
+
     Get.snackbar(
       'Nuevos eventos disponibles',
       'Presiona para actualizar',
@@ -119,10 +119,8 @@ class EventController extends GetxController {
   }
 
   Future<void> loadEventsIntelligently() async {
-    final connected = Get.find<ConnectivityController>().connection;
-
     try {
-      final hasNewVersion = await checkEventsVersion();
+      final hasNewVersion = await _checkEventsVersion();
       
       logInfo('Actualizando eventos...');
       final fetchedEvents = await _repository.getAllEvents();

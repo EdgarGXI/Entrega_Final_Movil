@@ -1,13 +1,13 @@
 
-import 'package:f_project_1/domain/datasources/i_event_local_data_source.dart';
+import 'package:f_project_1/domain/datasources/i_category_local_data_source.dart';
 import 'package:f_project_1/domain/datasources/i_version_remote_data_source.dart';
 import 'package:f_project_1/domain/usecases/i_check_version_usecase.dart';
 
-class CheckEventVersionUseCaseImpl implements ICheckVersionUseCase {
-  final IEventLocalDataSource local;
+class CheckCategoryVersionUseCaseImpl implements ICheckVersionUseCase {
+  final ICategoryLocalDataSource local;
   final IVersionRemoteDataSource remote;
 
-  CheckEventVersionUseCaseImpl({
+  CheckCategoryVersionUseCaseImpl({
     required this.local,
     required this.remote,
   });

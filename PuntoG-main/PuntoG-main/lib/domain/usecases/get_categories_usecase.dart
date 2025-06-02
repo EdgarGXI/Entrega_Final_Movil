@@ -1,4 +1,4 @@
-import 'package:f_project_1/data/models/category_model.dart';
+import 'package:f_project_1/domain/entities/category.dart';
 import 'package:f_project_1/domain/repositories/i_category_repository.dart';
 
 class GetCategoriesUseCase {
@@ -6,7 +6,7 @@ class GetCategoriesUseCase {
 
   GetCategoriesUseCase({required this.repository});
 
-  Future<List<CategoryModel>> call() {
+  Future<List<Category>> call() {
     return repository.getCategories();
   }
 }

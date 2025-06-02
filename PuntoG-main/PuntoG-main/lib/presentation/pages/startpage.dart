@@ -1,5 +1,6 @@
 import 'package:f_project_1/data/models/category_model.dart';
 import 'package:f_project_1/data/models/event_model.dart';
+import 'package:f_project_1/domain/entities/category.dart';
 import 'package:f_project_1/presentation/controllers/bottom_nav_controller.dart';
 import 'package:f_project_1/presentation/controllers/event_controller.dart';
 import 'package:f_project_1/presentation/controllers/home_controller.dart';
@@ -28,7 +29,7 @@ class Startpage extends StatelessWidget {
 
     final category = homeController.categories.firstWhere(
       (cat) => cat.type == eventController.selectedFilter.value,
-      orElse: () => CategoryModel(
+      orElse: () => Category(
           id: '', label: "Unknown", type: eventController.selectedFilter.value),
     );
 
